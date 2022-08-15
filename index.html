@@ -1,5 +1,58 @@
 <html>
-    <head></head>
+    <head>
+        <script>
+            let title = document.createElement("div");
+document.body.appendChild(title);
+title.className = "title";
+title.innerHTML = "EVA SIN BOKSTAVAPP";
+
+let inputChar = document.createElement("input");
+document.body.appendChild(inputChar);
+inputChar.className = "inputChar";
+inputChar.placeholder = "Skriv dine bokstaver her";
+
+
+let inputInt = document.createElement("input");
+document.body.appendChild(inputInt);
+inputInt.className = "inputInt";
+inputInt.placeholder = "Antall"
+
+let buttonStart = document.createElement("button");
+document.body.appendChild(buttonStart);
+buttonStart.className = "buttonStart";
+buttonStart.innerHTML = "START";
+
+buttonStart.addEventListener("click", ()=>{
+	let text = inputChar.value;
+  let numb = inputInt.value;
+  document.body.innerHTML="";
+  let charContainer = document.createElement("div");
+  charContainer.className = "charContainer";
+  document.body.appendChild(charContainer);
+  charContainer.innerHTML = getChars(text, numb);
+	console.log(inputChar.value + " " + inputInt.value);
+  
+  charContainer.addEventListener("click", ()=>{
+  	charContainer.innerHTML = getChars(text, numb);
+  })
+})
+
+function getChars(chars, numb){
+	let text = "";
+  
+  numb = Math.min(numb, chars.length);
+  
+	while(text.length<numb){
+  	let j = parseInt(Math.random() * chars.length);
+    
+    if(!text.includes(chars[j]))
+    	text+=chars[j];
+  }
+  
+ return text;
+}
+        </script>
+    </head>
     <body> hallaien </body>
 </html>
 
