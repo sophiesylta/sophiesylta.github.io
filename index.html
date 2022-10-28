@@ -63,7 +63,6 @@ document.body.appendChild(inputChar);
 inputChar.className = "inputChar";
 inputChar.placeholder = "Skriv dine bokstaver her";
 
-
 let inputInt = document.createElement("input");
 document.body.appendChild(inputInt);
 inputInt.className = "inputInt";
@@ -74,8 +73,21 @@ document.body.appendChild(buttonStart);
 buttonStart.className = "buttonStart";
 buttonStart.innerHTML = "START";
 
-buttonStart.addEventListener("click", ()=>{
+if(localStorage.getItem("bokstaver").length>0){
+	let btnUsePrevLetters = document.createElement("button");
+  console.log("hello");
+  btnUsePrevLetters.addEventListener("click", ()=>{
+  	inputChar.value = localStorage.getItem("bokstaver");
+  });
+  btnUsePrevLetters.innerHTML = "Bruk samme";
+  document.body.appendChild(btnUsePrevLetters);
+  
+}
+
+let start = ()=>{
 	let text = inputChar.value;
+	localStorage.setItem("bokstaver",text);
+  
   let numb = inputInt.value;
   document.body.innerHTML="";
   let charContainer = document.createElement("div");
@@ -84,9 +96,21 @@ buttonStart.addEventListener("click", ()=>{
   charContainer.innerHTML = getChars(text, numb);
 	console.log(inputChar.value + " " + inputInt.value);
   
-  charContainer.addEventListener("click", ()=>{
+  //charContainer.addEventListener("click", ()=>{
+  //	charContainer.innerHTML = getChars(text, numb);
+  //})
+  
+   charContainer.addEventListener("mousedown", ()=>{
   	charContainer.innerHTML = getChars(text, numb);
   })
+  
+  charContainer.addEventListener("touchstart", ()=>{
+  	charContainer.innerHTML = getChars(text, numb);
+  })
+}
+
+buttonStart.addEventListener("click", ()=>{
+	start();
 })
 
 function getChars(chars, numb){
@@ -102,6 +126,8 @@ function getChars(chars, numb){
   }
   
  return text;
+}
+
 }
         </script>
 
