@@ -73,7 +73,7 @@ document.body.appendChild(buttonStart);
 buttonStart.className = "buttonStart";
 buttonStart.innerHTML = "START";
 
-if(localStorage.getItem("bokstaver").length>0){
+if(localStorage.getItem("bokstaver")){
 	let btnUsePrevLetters = document.createElement("button");
   console.log("hello");
   btnUsePrevLetters.addEventListener("click", ()=>{
