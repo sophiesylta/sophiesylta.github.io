@@ -1,135 +1,252 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <style>
-            body{
-  background: lightblue;
-}
+<head>
+  <title>Avoid the Holes</title>
+  <style>
+    #game {
+      width: 500px;
+      height: 500px;
+      border: 1px solid black;
+      position: relative;
+    }
+    .hole {
+      width: 12.5px;
+      height: 12.5px;
+      position: absolute;
+      background-color: black;
+      border-radius: 6.25px;
+    }
+    .ball {
+      width: 15px;
+      height: 15px;
+      position: absolute;
+      background-color: red;
+      border-radius: 25px;
+    }
+    .checkpoint {
+      width: 25px;
+      height: 25px;
+      position: absolute;
+      background-color: blue;
+      border-radius: 12.5px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="checkpoint"></div>
+    <div class="ball"></div>
+  </div>
+  <script>
+  	var checkpointsReached = 0;
+    var game = document.getElementById("game");
+    var ball = document.querySelector(".ball");
+    var holes = document.querySelectorAll(".hole");
+    var checkpoints = document.querySelectorAll(".checkpoint");
+    var constantSpeed = 1e-5;
+    var xSpeed = 0;
+    var ySpeed = 0;
+    var xPos = 0;
+    var yPos = 0;
+    var gameOver = false;
+    var score = 0;
+    var increaseHoleSize = 3;
 
-.charContainer{
-  width: 100%;
-  height: 100%;
-  font-size: 50vh; 
-  text-align: center;
-  font-family: ComicSansMS;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.title{
-  font-size: 50px;
-  text-align: center;
-  color: purple;
-  font-family: ComicSansMS;
-}
-
-.inputInt{
-  width: fit-content;
-  font-size: 30px;
-  text-align: center;
-  display: block;
-  margin-right: auto;
-  margin-left: auto;
-}
-
-.inputChar{
-  width: fit-content;
-  font-size: 30px;
-  text-align: center;
-  display: block;
-  margin-right: auto;
-  margin-left: auto;
-}
-
-.buttonStart{
-  font-size: 30px;
-  display: block;
-  margin-right: auto;
-  margin-left: auto;
-  
-}
-        </style>
-    </head>
-    <body> </body>
-    <footer>
-        <script>
-            let title = document.createElement("div");
-document.body.appendChild(title);
-title.className = "title";
-title.innerHTML = "EVA SIN BOKSTAVAPP";
-
-let inputChar = document.createElement("input");
-document.body.appendChild(inputChar);
-inputChar.className = "inputChar";
-inputChar.placeholder = "Skriv dine bokstaver her";
-
-let inputInt = document.createElement("input");
-document.body.appendChild(inputInt);
-inputInt.className = "inputInt";
-inputInt.placeholder = "Antall"
-
-let buttonStart = document.createElement("button");
-document.body.appendChild(buttonStart);
-buttonStart.className = "buttonStart";
-buttonStart.innerHTML = "START";
-
-if(localStorage.getItem("bokstaver")){
-	let btnUsePrevLetters = document.createElement("button");
-  console.log("hello");
-  btnUsePrevLetters.addEventListener("click", ()=>{
-  	inputChar.value = localStorage.getItem("bokstaver");
-  });
-  btnUsePrevLetters.innerHTML = "Bruk samme";
-  document.body.appendChild(btnUsePrevLetters);
-  
-}
-
-let start = ()=>{
-	let text = inputChar.value;
-	localStorage.setItem("bokstaver",text);
-  
-  let numb = inputInt.value;
-  document.body.innerHTML="";
-  let charContainer = document.createElement("div");
-  charContainer.className = "charContainer";
-  document.body.appendChild(charContainer);
-  charContainer.innerHTML = getChars(text, numb);
-	console.log(inputChar.value + " " + inputInt.value);
-  
-  //charContainer.addEventListener("click", ()=>{
-  //	charContainer.innerHTML = getChars(text, numb);
-  //})
-  
-   charContainer.addEventListener("mousedown", ()=>{
-  	charContainer.innerHTML = getChars(text, numb);
-  })
-  
-  charContainer.addEventListener("touchstart", ()=>{
-  	charContainer.innerHTML = getChars(text, numb);
-  })
-}
-
-buttonStart.addEventListener("click", ()=>{
-	start();
-})
-
-function getChars(chars, numb){
-	let text = "";
-  
-  numb = Math.min(numb, chars.length);
-  
-	while(text.length<numb){
-  	let j = parseInt(Math.random() * chars.length);
+    function moveBall() {
+      if (!gameOver) {
+        xPos += xSpeed;
+        yPos += ySpeed;
+        ball.style.left = xPos + "px";
+        ball.style.top = yPos + "px";
+        checkCollision();
+        checkCollisionWithCheckpoints();
+        checkBorders();
+        moveHoles();
+        requestAnimationFrame(moveBall);
+      }
+    }
     
-    if(!text.includes(chars[j]))
-    	text+=chars[j];
+    function normalizeHoleVelocities() {
+  const holes = document.querySelectorAll(".hole");
+  for (let i = 0; i < holes.length; i++) {
+    let hole = holes[i];
+    if (!hole.xSpeed) {
+      hole.xSpeed = getRandomSpeed();
+    }
+    if (!hole.ySpeed) {
+      hole.ySpeed = getRandomSpeed();
+    }
+
+    // Get the magnitude of the velocity vector
+    let magnitude = Math.sqrt(Math.pow(hole.xSpeed, 2) + Math.pow(hole.ySpeed, 2));
+
+    // Divide x and y speeds by the magnitude to normalize the velocity vector
+    hole.xSpeed = hole.xSpeed / magnitude;
+    hole.ySpeed = hole.ySpeed / magnitude;
+
+    // Multiply the normalized x and y speeds by a constant speed to set the magnitude
+    hole.xSpeed = hole.xSpeed * constantSpeed;
+    hole.ySpeed = hole.ySpeed * constantSpeed;
   }
-  
- return text;
-
 }
-        </script>
 
-    </footer>
+    
+    function moveHoles() {
+  const holes = document.querySelectorAll(".hole");
+  for (let i = 0; i < holes.length; i++) {
+    let hole = holes[i];
+    if (!hole.xSpeed) {
+      hole.xSpeed = getRandomSpeed();
+    }
+    if (!hole.ySpeed) {
+      hole.ySpeed = getRandomSpeed();
+    }
+    let xPos = hole.offsetLeft + hole.xSpeed;
+    let yPos = hole.offsetTop + hole.ySpeed;
+    if (xPos < 0) {
+      hole.xSpeed = -hole.xSpeed;
+      xPos = 0;
+    }
+    if (xPos > game.offsetWidth - hole.offsetWidth) {
+      hole.xSpeed = -hole.xSpeed;
+      xPos = game.offsetWidth - hole.offsetWidth;
+    }
+    if (yPos < 0) {
+      hole.ySpeed = -hole.ySpeed;
+      yPos = 0;
+    }
+    if (yPos > game.offsetHeight - hole.offsetHeight) {
+      hole.ySpeed = -hole.ySpeed;
+      yPos = game.offsetHeight - hole.offsetHeight;
+    }
+    hole.style.left = xPos + "px";
+    hole.style.top = yPos + "px";
+  }
+}
+
+
+function getRandomSpeed() {
+  return (Math.random() - 0.5) * 10;
+}
+
+
+    function checkCollision() {
+  for (var i = 0; i < holes.length; i++) {
+    var hole = holes[i];
+    var holeX = hole.offsetLeft + hole.offsetWidth / 2;
+    var holeY = hole.offsetTop + hole.offsetHeight / 2;
+    var holeRadius = hole.offsetWidth / 2;
+    var ballX = xPos + ball.offsetWidth / 2;
+    var ballY = yPos + ball.offsetHeight / 2;
+    var ballRadius = ball.offsetWidth / 2;
+    var distance = Math.sqrt(Math.pow(holeX - ballX, 2) + Math.pow(holeY - ballY, 2));
+    if (distance < holeRadius + ballRadius) {
+      gameOver = true;
+      alert("Game over! Your score is: " + score);
+      location.reload();
+    }
+  }
+}
+
+function checkCollisionWithCheckpoints() {
+  var checkpoints = document.querySelectorAll(".checkpoint");
+  for (var i = 0; i < checkpoints.length; i++) {
+    var checkpoint = checkpoints[i];
+    var checkpointX = checkpoint.offsetLeft + checkpoint.clientWidth / 2;
+    var checkpointY = checkpoint.offsetTop + checkpoint.clientHeight / 2;
+    var playerX = ball.offsetLeft + ball.clientWidth / 2;
+    var playerY = ball.offsetTop + ball.clientHeight / 2;
+
+    var distance = Math.sqrt(
+      Math.pow(playerX - checkpointX, 2) + Math.pow(playerY - checkpointY, 2)
+    );
+
+    if (distance < ball.clientWidth / 2 + checkpoint.clientWidth / 2) {
+      score++;
+      var newPosition = getRandomPosition();
+      
+      constantSpeed+=0.5;
+      normalizeHoleVelocities();
+      checkpoint.style.left = newPosition.x + "px";
+      checkpoint.style.top = newPosition.y + "px";
+      
+      var holes = document.querySelectorAll(".hole");
+      for (var j = 0; j < holes.length; j++) {
+        var width = holes[j].style.width ? parseInt(holes[j].style.width) : 10;
+        var height = holes[j].style.height ? parseInt(holes[j].style.height) : 10;
+
+        width = width + increaseHoleSize;
+        height = height + increaseHoleSize;
+
+        holes[j].style.width = width + "px";
+        holes[j].style.height = height + "px";
+
+        // make the hole circular by setting border-radius to half the width/height
+        holes[j].style.borderRadius = (width / 2) + "px";
+      }
+    }
+  }
+}
+
+
+
+
+
+
+function getRandomPosition() {
+  var x = Math.floor(Math.random() * game.offsetWidth);
+  var y = Math.floor(Math.random() * game.offsetHeight);
+  return { x: x, y: y };
+}
+
+
+
+
+    
+function checkBorders() {
+  if (xPos < 0) {
+    xPos = game.offsetWidth - ball.offsetWidth;
+  } else if (xPos > game.offsetWidth - ball.offsetWidth) {
+    xPos = 0;
+  }
+  if (yPos < 0) {
+    yPos = game.offsetHeight - ball.offsetHeight;
+  } else if (yPos > game.offsetHeight - ball.offsetHeight) {
+    yPos = 0;
+  }
+}
+
+
+
+    document.onkeydown = function(e) {
+      switch (e.keyCode) {
+        case 37: // left
+          xSpeed = -5;
+          ySpeed = 0;
+          break;
+        case 38: // up
+          xSpeed = 0;
+          ySpeed = -5;
+          break;
+        case 39: // right
+          xSpeed = 5;
+          ySpeed = 0;
+          break;
+        case 40: // down
+          xSpeed = 0;
+          ySpeed = 5;
+          break;
+      }
+    };
+		console.log(document.querySelectorAll(".checkpoint").length);
+    normalizeHoleVelocities();
+    moveBall();
+  </script>
+</body>
 </html>
-
